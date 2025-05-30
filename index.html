@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Notepad</title>
+    <script src="https://unpkg.com/fabric@5.3.0/dist/fabric.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            touch-action: none;
+            background-color: #f0f9ff;
+        }
+        #canvas-container {
+            border: 2px solid #0ea5e9;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .tool-active {
+            background-color: #0ea5e9 !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <h1 class="text-2xl font-bold text-sky-600 mb-4">Smart Notepad</h1>
+            
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button onclick="setMode('draw')" class="tool-btn px-4 py-2 bg-sky-100 text-sky-600 rounded hover:bg-sky-200">
+                    <i class="bi bi-pencil"></i> Draw
+                </button>
+                <button onclick="setMode('text')" class="tool-btn px-4 py-2 bg-sky-100 text-sky-600 rounded hover:bg-sky-200">
+                    <i class="bi bi-font"></i> Text
+                </button>
+                <button onclick="addShape('rect')" class="px-4 py-2 bg-sky-100 text-sky-600 rounded hover:bg-sky-200">
+                    <i class="bi bi-square"></i> Rectangle
+                </button>
+                <button onclick="addShape('circle')" class="px-4 py-2 bg-sky-100 text-sky-600 rounded hover:bg-sky-200">
+                    <i class="bi bi-circle"></i> Circle
+                </button>
+                <button onclick="addArrow()" class="px-4 py-2 bg-sky-100 text-sky-600 rounded hover:bg-sky-200">
+                    <i class="bi bi-arrow-right"></i> Arrow
+                </button>
+                <button onclick="clearCanvas()" class="px-4 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200">
+                    <i class="bi bi-trash"></i> Clear
+                </button>
+                <button onclick="downloadCanvas()" class="px-4 py-2 bg-green-100 text-green-600 rounded hover:bg-green-200">
+                    <i class="bi bi-download"></i> Save
+                </button>
+            </div>
+
+            <div id="canvas-container">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas = new fabric.Canvas('canvas', {
+            isDrawingMode: true,
+            width: window.innerWidth > 768 ? 800 : window.innerWidth - 40,
+            height: 600
+        });
+
+        // Make canvas responsive
+        window.addEventListener('resize', () => {
+            canvas.setWidth(window.innerWidth > 768 ? 800 : window.innerWidth - 40);
+            canvas.renderAll();
+        });
+
+        canvas.freeDrawingBrush.width = 2;
+        canvas.freeDrawingBrush.color = '#0ea5e9';
+
+        function setMode(mode) {
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('tool-active'));
+            if (mode === 'draw') {
+                canvas.isDrawingMode = true;
+                document.querySelector('button:nth-child(1)').classList.add('tool-active');
+            } else if (mode === 'text') {
+                canvas.isDrawingMode = false;
+                document.querySelector('button:nth-child(2)').classList.add('tool-active');
+                addText();
+            }
+        }
+
+        function addText() {
+            const text = new fabric.IText('Click to edit', {
+                left: 50,
+                top: 50,
+                fontSize: 20,
+                fill: '#0ea5e9'
+            });
+            canvas.add(text);
+        }
+
+        function addShape(shape) {
+            canvas.isDrawingMode = false;
+            let object;
+            
+            if (shape === 'rect') {
+                object = new fabric.Rect({
+                    left: 50,
+                    top: 50,
+                    width: 100,
+                    height: 60,
+                    fill: 'transparent',
+                    stroke: '#0ea5e9',
+                    strokeWidth: 2
+                });
+            } else if (shape === 'circle') {
+                object = new fabric.Circle({
+                    left: 50,
+                    top: 50,
+                    radius: 30,
+                    fill: 'transparent',
+                    stroke: '#0ea5e9',
+                    strokeWidth: 2
+                });
+            }
+            
+            canvas.add(object);
+        }
+
+        function addArrow() {
+            canvas.isDrawingMode = false;
+            const arrow = new fabric.Path('M 0 0 L 200 0 L 190 -10 M 200 0 L 190 10', {
+                left: 50,
+                top: 50,
+                stroke: '#0ea5e9',
+                strokeWidth: 2,
+                fill: 'transparent'
+            });
+            canvas.add(arrow);
+        }
+
+        function clearCanvas() {
+            if (confirm('Are you sure you want to clear the canvas?')) {
+                canvas.clear();
+            }
+        }
+
+        function downloadCanvas() {
+            const link = document.createElement('a');
+            link.download = 'notepad-drawing.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Initial active state
+        document.querySelector('button:nth-child(1)').classList.add('tool-active');
+
+        // Touch events for mobile
+        canvas.on('touch:gesture', function(opt) {
+            if (opt.e.touches && opt.e.touches.length > 1) {
+                opt.e.preventDefault();
+            }
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
